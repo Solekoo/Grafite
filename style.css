@@ -107,7 +107,20 @@ h2 { margin-bottom: 0; font-size: clamp(44px, 5vw, 65px); line-height: .98; }
 .page-count i { margin: 0 9px; color: var(--orange); font-style: normal; }
 .artists-intro { padding-top: 90px; padding-bottom: 90px; }
 .artists-intro .section-heading { margin-bottom: 42px; }
+.artist-search-wrap { max-width: 480px; margin: 0 0 30px; }
+.artist-search-wrap label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
+.artist-search-wrap input { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #bdbab0; border-radius: 0; background: transparent; color: var(--ink); font: 13px var(--body); }
+.artist-search-wrap input:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.artist-search-wrap #artist-results { margin: 8px 0 0; color: var(--muted); font-size: 11px; }
 .artist-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 23px; }
+.artist-card[hidden] { display: none; }
+.artist-image-cover { position: relative; display: grid; place-items: center; color: var(--ink); }
+.artist-cover-mark { font: 700 82px/1 var(--display); }
+.artist-cover-lime { background: repeating-linear-gradient(135deg, transparent 0 12px, #1719151c 12px 14px), var(--lime); }
+.artist-cover-pink { background: repeating-linear-gradient(45deg, transparent 0 23px, #17191518 24px 26px), var(--pink); }
+.artist-cover-blue { background: linear-gradient(135deg, transparent 49%, #367f9c55 50% 63%, transparent 64%), repeating-linear-gradient(-35deg, transparent 0 18px, #17191518 19px 21px), var(--blue); }
+.artist-cover-orange { background: repeating-linear-gradient(0deg, transparent 0 17px, #1719151c 18px 20px), repeating-linear-gradient(90deg, transparent 0 26px, #17191518 27px 29px), var(--orange); }
+.artist-cover-ink { background: repeating-linear-gradient(135deg, transparent 0 20px, #f5f2e922 21px 23px), var(--ink); color: var(--paper); }
 .artist-image { height: 245px; margin-bottom: 18px; overflow: hidden; background: #ded8c8; }
 .artist-image img { transition: transform .4s ease; }
 .artist-card:hover .artist-image img { transform: scale(1.04); }
