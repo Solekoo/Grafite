@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Teste sua memória visual em um jogo de reconstrução de cores inspirado pela arte urbana.">
+  <title>DecoraCor — Traço, grafite e cidade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Traço, página inicial"><span class="brand-mark">T</span><span>TRAÇO<span class="brand-dot">.</span></span></a>
+    <nav class="main-nav" aria-label="Navegação principal"><a href="index.html">Início</a><a href="artistas.html">Artistas</a><a class="active" aria-current="page" href="jogo.html">DecoraCor</a><a href="impacto.html">Arte &amp; cidade</a></nav>
+    <a class="header-note" href="impacto.html#video">CULTURA DE RUA <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="color-page">
+      <div class="color-heading">
+        <div><p class="eyebrow"><span class="eyebrow-line"></span> UM DESAFIO PARA O OLHO</p><h1>Decora<span class="highlight-word">Cor.</span></h1></div>
+        <p>Observe a cor por alguns segundos. Depois, use os controles para chegar o mais perto possível da sua lembrança.</p>
+      </div>
+
+      <section class="color-studio" aria-label="Jogo de memória de cores">
+        <div class="color-stage">
+          <div class="game-progress"><span id="round-label">PRONTO PARA JOGAR</span><div class="game-dots" id="game-dots" aria-hidden="true"></div></div>
+          <div class="color-target" id="color-target" role="img" aria-label="A cor aparecerá quando a partida começar"><span class="target-prompt" id="target-prompt">Cinco cores.<br>Uma boa memória.<small>Prepare o olhar para começar.</small></span></div>
+          <div class="game-feedback" id="game-feedback" aria-live="polite"><span id="feedback-message">Cada rodada revela uma nova cor.</span><span class="feedback-swatches" id="feedback-swatches" hidden></span></div>
+        </div>
+
+        <div class="color-controls">
+          <h2 id="controls-title">Sua tentativa</h2>
+          <p id="controls-copy">Ajuste os três controles para reconstruir a cor que você viu.</p>
+          <div class="guess-swatch" id="guess-swatch" role="img" aria-label="Prévia da cor escolhida"></div>
+          <div class="color-range"><label for="hue-range">Matiz <output id="hue-value" for="hue-range">180°</output></label><input id="hue-range" type="range" min="0" max="359" value="180" disabled></div>
+          <div class="color-range"><label for="saturation-range">Saturação <output id="saturation-value" for="saturation-range">55%</output></label><input id="saturation-range" type="range" min="0" max="100" value="55" disabled></div>
+          <div class="color-range"><label for="lightness-range">Luminosidade <output id="lightness-value" for="lightness-range">55%</output></label><input id="lightness-range" type="range" min="0" max="100" value="55" disabled></div>
+          <button class="game-action" id="game-action" type="button">Começar partida <span aria-hidden="true">↗</span></button>
+          <p class="game-total">Pontuação <strong id="game-total">0</strong> / 500</p>
+        </div>
+      </section>
+      <div class="color-note"><span>JOGO DE MEMÓRIA VISUAL · 5 RODADAS</span><span>UMA COR DE CADA VEZ</span></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="brand footer-brand" href="index.html"><span class="brand-mark">T</span><span>TRAÇO<span class="brand-dot">.</span></span></a><p>Um olhar sobre grafite, cidade e expressão.</p><span>FEITO PARA OLHAR DE NOVO · 2026</span></footer>
+
+  <script>
+    const roundCount = 5;
+    const target = document.querySelector('#color-target');
+    const targetPrompt = document.querySelector('#target-prompt');
+    const roundLabel = document.querySelector('#round-label');
+    const dots = document.querySelector('#game-dots');
+    const feedbackMessage = document.querySelector('#feedback-message');
+    const feedbackSwatches = document.querySelector('#feedback-swatches');
+    const action = document.querySelector('#game-action');
+    const total = document.querySelector('#game-total');
+    const sliders = {
+      hue: document.querySelector('#hue-range'),
+      saturation: document.querySelector('#saturation-range'),
+      lightness: document.querySelector('#lightness-range')
+    };
+    const outputs = {
+      hue: document.querySelector('#hue-value'),
+      saturation: document.querySelector('#saturation-value'),
+      lightness: document.querySelector('#lightness-value')
+    };
+
+    let round = 0;
+    let currentColor;
+    let points = 0;
+    let roundPoints = [];
+    let state = 'idle';
+    let nextRoundTimer;
+
+    function makeColor() {
+      return {
+        hue: Math.floor(Math.random() * 360),
+        saturation: 45 + Math.floor(Math.random() * 46),
+        lightness: 35 + Math.floor(Math.random() * 36)
+      };
+    }
+
+    function toHsl(color) {
+      return `hsl(${color.hue} ${color.saturation}% ${color.lightness}%)`;
+    }
+
+    function updateGuess() {
+      const color = {
+        hue: Number(sliders.hue.value),
+        saturation: Number(sliders.saturation.value),
+        lightness: Number(sliders.lightness.value)
+      };
+      document.querySelector('#guess-swatch').style.backgroundColor = toHsl(color);
+      outputs.hue.value = `${color.hue}°`;
+      outputs.saturation.value = `${color.saturation}%`;
+      outputs.lightness.value = `${color.lightness}%`;
+      return color;
+    }
+
+    function setControlsEnabled(enabled) {
+      Object.values(sliders).forEach((slider) => { slider.disabled = !enabled; });
+    }
+
+    function renderDots() {
+      dots.replaceChildren(...Array.from({ length: roundCount }, (_, index) => {
+        const dot = document.createElement('span');
+        dot.className = 'game-dot';
+        if (index < round) dot.classList.add('is-done');
+        if (index === round && state !== 'complete') dot.classList.add('is-current');
+        return dot;
+      }));
+    }
+
+    function startGame() {
+      clearTimeout(nextRoundTimer);
+      round = 0;
+      points = 0;
+      roundPoints = [];
+      total.textContent = '0';
+      action.disabled = true;
+      beginRound();
+    }
+
+    function beginRound() {
+      state = 'memorize';
+      currentColor = makeColor();
+      roundLabel.textContent = `RODADA ${String(round + 1).padStart(2, '0')} / 0${roundCount}`;
+      target.classList.remove('is-hidden');
+      target.style.backgroundColor = toHsl(currentColor);
+      target.setAttribute('aria-label', 'Memorize a cor exibida');
+      targetPrompt.hidden = true;
+      feedbackMessage.textContent = 'Memorize esta cor.';
+      feedbackSwatches.hidden = true;
+      action.disabled = true;
+      action.innerHTML = 'Observe a cor <span aria-hidden="true">…</span>';
+      setControlsEnabled(false);
+      renderDots();
+      window.setTimeout(() => {
+        if (state !== 'memorize') return;
+        state = 'guess';
+        target.classList.add('is-hidden');
+        target.style.backgroundColor = '';
+        target.setAttribute('aria-label', 'Cor escondida. Use os controles para recriá-la.');
+        roundLabel.textContent = 'SUA VEZ';
+        feedbackMessage.textContent = 'Ajuste a matiz, a saturação e a luminosidade.';
+        action.disabled = false;
+        action.innerHTML = 'Confirmar cor <span aria-hidden="true">↗</span>';
+        setControlsEnabled(true);
+        renderDots();
+      }, 2400);
+    }
+
+    function scoreColor(guess) {
+      const targetRgb = hslToRgb(currentColor);
+      const guessRgb = hslToRgb(guess);
+      const distance = Math.sqrt(targetRgb.reduce((sum, channel, index) => sum + (channel - guessRgb[index]) ** 2, 0));
+      return Math.round((1 - distance / Math.sqrt(3 * 255 ** 2)) * 100);
+    }
+
+    function hslToRgb({ hue, saturation, lightness }) {
+      const h = hue / 360;
+      const s = saturation / 100;
+      const l = lightness / 100;
+      const channel = (n) => {
+        const k = (n + h * 12) % 12;
+        const a = s * Math.min(l, 1 - l);
+        return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+      };
+      return [channel(0), channel(8), channel(4)];
+    }
+
+    function submitGuess() {
+      const guess = updateGuess();
+      const earned = scoreColor(guess);
+      points += earned;
+      roundPoints.push(earned);
+      total.textContent = String(points);
+      state = 'feedback';
+      setControlsEnabled(false);
+      target.classList.remove('is-hidden');
+      target.style.backgroundColor = toHsl(currentColor);
+      target.setAttribute('aria-label', `Cor original revelada: matiz ${currentColor.hue} graus`);
+      feedbackMessage.textContent = `${earned} pontos nesta rodada`;
+      feedbackSwatches.replaceChildren();
+      [currentColor, guess].forEach((color, index) => {
+        const swatch = document.createElement('span');
+        swatch.className = 'feedback-swatch';
+        swatch.style.backgroundColor = toHsl(color);
+        swatch.setAttribute('aria-label', index === 0 ? 'Cor original' : 'Sua tentativa');
+        feedbackSwatches.append(swatch);
+      });
+      feedbackSwatches.hidden = false;
+      action.disabled = true;
+      action.innerHTML = 'Próxima cor <span aria-hidden="true">…</span>';
+      round += 1;
+      renderDots();
+      nextRoundTimer = window.setTimeout(() => {
+        if (round === roundCount) finishGame();
+        else beginRound();
+      }, 1600);
+    }
+
+    function finishGame() {
+      state = 'complete';
+      target.style.backgroundColor = '';
+      target.classList.add('is-hidden');
+      target.setAttribute('aria-label', 'Partida concluída');
+      targetPrompt.hidden = false;
+      targetPrompt.innerHTML = `Você fez ${points} pontos.<small>${points >= 400 ? 'Olho afiado: sua memória de cor está em dia.' : 'Mais uma partida e seu olhar fica ainda mais treinado.'}</small>`;
+      roundLabel.textContent = 'PARTIDA CONCLUÍDA';
+      feedbackMessage.textContent = `Média de ${Math.round(points / roundCount)} pontos por cor.`;
+      feedbackSwatches.hidden = true;
+      action.disabled = false;
+      action.innerHTML = 'Jogar novamente <span aria-hidden="true">↻</span>';
+      renderDots();
+    }
+
+    Object.values(sliders).forEach((slider) => slider.addEventListener('input', updateGuess));
+    action.addEventListener('click', () => {
+      if (state === 'idle' || state === 'complete') startGame();
+      else if (state === 'guess') submitGuess();
+    });
+    updateGuess();
+    renderDots();
+  </script>
+</body>
+</html>
